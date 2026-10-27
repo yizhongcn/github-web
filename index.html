@@ -3,25 +3,100 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello GitHub Pages</title>
+  <title>蚁人 EGO Art Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>👋 Hello, GitHub Pages!</h1>
-    <p class="subtitle">这是一个用 Trae Code 搭建并发布的静态网站</p>
 
-    <section class="card">
-      <h2>✨ 关于这个站点</h2>
-      <p>本页面由纯 HTML + CSS + JavaScript 构建，通过 GitHub Pages 免费托管。</p>
-      <button id="counterBtn">点我试试 👇</button>
-      <p>已点击 <span id="count">0</span> 次</p>
-    </section>
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo">
+        <span class="logo-mark">蚁人</span>
+        <span class="logo-text">EGO · ART GALLERY</span>
+      </div>
+      <div class="nav-links">
+        <a href="#gallery">Collection</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
 
-    <footer>
-      <p>Built with ❤️ by Trae Code + GitHub</p>
-    </footer>
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="hero-kicker">A Private Collection · 世界名画复刻</p>
+      <h1 class="hero-title">
+        <span class="hero-title-line">蚁人 EGO</span>
+        <span class="hero-title-italic">Art Gallery</span>
+      </h1>
+      <p class="hero-sub">十五幅名作，一次凝视 — 在黑白之间，聆听大师的低语。</p>
+      <a href="#gallery" class="hero-cta">
+        <span>Enter the Gallery</span>
+        <span class="hero-cta-arrow">↓</span>
+      </a>
+    </div>
+    <div class="hero-line"></div>
+  </header>
+
+  <!-- GALLERY -->
+  <main id="gallery" class="gallery">
+    <div class="gallery-header">
+      <p class="section-num">— 01 —</p>
+      <h2 class="section-title">The Collection</h2>
+      <p class="section-sub">十五件作品 · 文艺复兴至浪漫主义</p>
+    </div>
+    <div class="gallery-grid" id="galleryGrid">
+      <!-- rendered by JS -->
+    </div>
   </main>
+
+  <!-- ABOUT -->
+  <section id="about" class="about">
+    <div class="about-inner">
+      <div class="about-label">
+        <p class="section-num">— 02 —</p>
+        <h2 class="section-title left">About the Artist</h2>
+      </div>
+      <div class="about-text">
+        <p class="about-lead">蚁人 EGO</p>
+        <p>独立艺术家，以 AI 数字复刻为语言，向文艺复兴以来的伟大传统致敬。每一幅作品，都是一次跨越时空的对话。</p>
+        <p class="about-quote">「在黑白的沉默中，色彩才显得更加真实。」</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <footer id="contact" class="footer">
+    <div class="footer-inner">
+      <p class="section-num">— 03 —</p>
+      <h2 class="footer-title">蚁人 EGO<br/>Art Gallery</h2>
+      <div class="footer-meta">
+        <p>Private Viewing by Appointment</p>
+        <p>© 2026 · All Works by 蚁人 EGO</p>
+      </div>
+    </div>
+    <div class="footer-line"></div>
+  </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous">‹</button>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next">›</button>
+    <div class="lightbox-content">
+      <img id="lightboxImg" alt="" />
+      <div class="lightbox-caption">
+        <h3 id="lightboxTitle"></h3>
+        <p id="lightboxArtist"></p>
+        <p class="lightbox-num" id="lightboxNum"></p>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
