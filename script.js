@@ -1,7 +1,7 @@
 // 蚁人 EGO Art Gallery — 数据驱动渲染 + Lightbox
 
 const artworks = [
-  { num: "01", file: "artwork-01.png", title: "Self Portrait", artist: "蚁人 EGO" },
+  { num: "01", file: "artwork-01.jpg", title: "Self Portrait", artist: "蚁人 EGO" },
   { num: "02", file: "artwork-02.jpg", title: "上十字架", artist: "达芬奇 ·复刻" },
   { num: "03", file: "artwork-03.jpg", title: "犹太新娘 I", artist: "伦勃朗 ·复刻" },
   { num: "04", file: "artwork-04.jpg", title: "犹太新娘 II", artist: "伦勃朗 ·复刻" },
@@ -9,7 +9,7 @@ const artworks = [
   { num: "06", file: "artwork-06.jpg", title: "最后的晚餐", artist: "达芬奇 ·复刻" },
   { num: "07", file: "artwork-07.jpg", title: "朱迪斯斩首荷罗孚尼", artist: "卡拉瓦乔 ·复刻" },
   { num: "08", file: "artwork-08.jpg", title: "春", artist: "波提切利 ·复刻" },
-  { num: "09", file: "artwork-09.png", title: "倒牛奶的女仆", artist: "维米尔 ·复刻" },
+  { num: "09", file: "artwork-09.jpg", title: "倒牛奶的女仆", artist: "维米尔 ·复刻" },
   { num: "10", file: "artwork-10.jpg", title: "维纳斯的诞生", artist: "波提切利 ·复刻" },
   { num: "11", file: "artwork-11.jpg", title: "自由引导人民", artist: "德拉克洛瓦 ·复刻" },
   { num: "12", file: "artwork-12.jpg", title: "蒙娜丽莎", artist: "达芬奇 ·复刻" },
