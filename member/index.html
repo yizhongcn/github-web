@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>会员信息收集 · MEMBER REGISTRY</title>
+<meta name="description" content="Swiss International Style 会员信息收集与数据导出">
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --paper:#F2F1EC;
+  --paper-2:#E9E7E0;
+  --ink:#101010;
+  --ink-60:rgba(16,16,16,.60);
+  --ink-38:rgba(16,16,16,.38);
+  --rule:rgba(16,16,16,.16);
+  --red:#E2231A;
+  --red-dark:#B81A13;
+  --pad:clamp(20px,4vw,64px);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+::selection{background:var(--red);color:#fff}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Helvetica Neue","Inter","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+  font-size:16px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+/* background vertical grid */
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55}
+.grid-bg span{position:absolute;top:0;bottom:0;width:1px;background:var(--rule)}
+/* scroll progress */
+.progress-rail{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;background:transparent}
+.progress-rail i{display:block;height:100%;width:0;background:var(--red);transition:width .45s var(--ease)}
+
+/* ============ SHELL ============ */
+.wrap{position:relative;z-index:1;max-width:1480px;margin:0 auto;padding:0 var(--pad)}
+
+/* ============ TOP BAR ============ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:22px 0 18px;border-bottom:1px solid var(--ink);
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  animation:fadeDown .8s var(--ease) both;
+}
+.topbar .brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.mark{width:20px;height:20px;background:var(--ink);position:relative;flex:none}
+.mark::after{content:"";position:absolute;inset:5px;background:var(--red)}
+.topbar .meta{display:flex;align-items:center;gap:28px;color:var(--ink-60)}
+.topbar .dot{width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block;margin-right:8px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+
+/* ============ HERO ============ */
+.hero{padding:clamp(44px,7vw,96px) 0 clamp(30px,4vw,56px);position:relative}
+.hero .kicker{
+  display:flex;align-items:baseline;gap:18px;margin-bottom:clamp(22px,3vw,38px);
+  animation:rise .9s .1s var(--ease) both;
+}
+.kicker .no{font-size:12px;letter-spacing:.22em;font-weight:700;color:var(--red)}
+.kicker .bar{flex:1;height:1px;background:var(--ink);transform-origin:left;animation:lineIn 1.2s .35s var(--ease) both}
+.kicker .tag{font-size:12px;letter-spacing:.22em;color:var(--ink-60)}
+@keyframes lineIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+h1{
+  font-size:clamp(52px,10.5vw,150px);
+  line-height:.86;letter-spacing:-.045em;font-weight:700;
+  animation:rise 1s .18s var(--ease) both;
+}
+h1 .en{
+  display:block;font-size:clamp(15px,1.9vw,24px);letter-spacing:.05em;
+  font-weight:500;margin-top:clamp(16px,2.2vw,26px);color:var(--ink);line-height:1.2;
+}
+h1 .en span{color:var(--red)}
+.hero-bottom{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;
+  margin-top:clamp(32px,4.5vw,60px);padding-top:20px;border-top:1px solid var(--ink);
+  font-size:12px;color:var(--ink-60);
+  animation:rise .9s .3s var(--ease) both;
+}
+.hero-bottom .item b{display:block;color:var(--ink);font-size:12px;letter-spacing:.16em;margin-bottom:6px;text-transform:uppercase}
+.hero-bottom .item:last-child{color:var(--red);font-weight:700;text-align:right}
+.scroll-cue{margin-top:clamp(26px,3.5vw,44px);font-size:11px;letter-spacing:.2em;color:var(--ink-60);display:flex;align-items:center;gap:10px}
+.scroll-cue i{width:34px;height:1px;background:var(--ink);display:inline-block;animation:lineIn 1s .6s var(--ease) both}
+
+/* ============ FORM SECTION ============ */
+.form-sec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:clamp(28px,4vw,64px);padding-bottom:clamp(60px,8vw,120px)}
+.form-main{border-top:1px solid var(--ink)}
+.section-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  padding:18px 0 16px;border-bottom:1px solid var(--ink);
+}
+.section-head .t{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60)}
+.section-head .n{font-size:11px;letter-spacing:.14em;color:var(--red);font-weight:700}
+
+.field-group{padding:clamp(26px,3.4vw,42px) 0;border-bottom:1px solid var(--rule)}
+.group-title{display:flex;align-items:baseline;gap:14px;margin-bottom:clamp(22px,3vw,34px)}
+.group-title .idx{font-size:12px;font-weight:700;color:var(--red);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.group-title h2{font-size:clamp(20px,2.4vw,30px);letter-spacing:-.02em;font-weight:700;line-height:1.05}
+.group-title .en{font-size:10px;letter-spacing:.18em;color:var(--ink-38);text-transform:uppercase;margin-left:auto}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,3vw,38px) clamp(24px,3.4vw,44px)}
+.field{position:relative;display:flex;flex-direction:column;gap:9px;min-width:0}
+.field.full{grid-column:1/-1}
+.label{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.14em;color:var(--ink-60);text-transform:uppercase}
+.label .cn{letter-spacing:.04em;font-size:12px;color:var(--ink);font-weight:500;text-transform:none}
+.label .req{color:var(--red);font-weight:700;font-size:11px;letter-spacing:0}
+
+.control{
+  width:100%;border:0;border-bottom:1px solid var(--ink);background:transparent;
+  font-family:inherit;font-size:clamp(17px,1.5vw,20px);color:var(--ink);
+  padding:8px 0 10px;border-radius:0;outline:none;transition:border-color .3s,background .3s;
+  -webkit-appearance:none;appearance:none;
+}
+.control::placeholder{color:var(--ink-38);font-size:15px}
+.control:focus{border-bottom-color:var(--red)}
+.field::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--red);
+  transform:scaleX(0);transform-origin:left;transition:transform .4s var(--ease);
+  pointer-events:none;
+}
+.field:focus-within::after{transform:scaleX(1)}
+.field.err .control{border-bottom-color:var(--red)}
+.field.err::after{transform:scaleX(1);background:var(--red)}
+.err-msg{
+  font-size:11px;color:var(--red);letter-spacing:.04em;height:0;opacity:0;overflow:hidden;
+  transition:opacity .25s,height .25s;margin-top:-2px;
+}
+.field.err .err-msg{opacity:1;height:16px}
+
+select.control{
+  padding-right:26px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);
+  background-position:calc(100% - 12px) 55%,calc(100% - 7px) 55%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+textarea.control{resize:none;min-height:78px;line-height:1.5;font-size:16px}
+
+/* chips / radios */
+.chips{display:flex;flex-wrap:wrap;gap:10px;padding-top:4px}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip{position:relative;cursor:pointer}
+.chip span{
+  display:inline-block;padding:9px 16px;border:1px solid var(--ink);font-size:13px;
+  letter-spacing:.03em;transition:background .28s var(--ease),color .28s var(--ease),transform .28s var(--ease);
+  user-select:none;
+}
+.chip:hover span{transform:translateY(-2px)}
+.chip input:checked+span{background:var(--ink);color:var(--paper)}
+.chip input:focus-visible+span{outline:2px solid var(--red);outline-offset:3px}
+.chip.red input:checked+span{background:var(--red);border-color:var(--red)}
+
+/* consent */
+.consent-field::after{display:none}
+.consent{display:flex;gap:14px;align-items:flex-start;padding-top:8px;cursor:pointer}
+.consent input{position:absolute;opacity:0}
+.box{width:20px;height:20px;border:1px solid var(--ink);flex:none;position:relative;margin-top:2px;transition:background .25s,border-color .25s}
+.box::after{content:"";position:absolute;left:5px;top:1px;width:6px;height:11px;border:2px solid var(--paper);border-top:0;border-left:0;transform:rotate(45deg) scale(0);transition:transform .25s var(--ease)}
+.consent input:checked+.box{background:var(--red);border-color:var(--red)}
+.consent input:checked+.box::after{transform:rotate(45deg) scale(1)}
+.consent input:focus-visible+.box{outline:2px solid var(--red);outline-offset:3px}
+.consent p{font-size:13px;line-height:1.6;color:var(--ink-60)}
+.consent p strong{color:var(--ink);font-weight:500}
+
+/* submit */
+.actions{display:flex;align-items:center;gap:20px;padding-top:clamp(26px,3.2vw,40px);flex-wrap:wrap}
+.btn-submit{
+  position:relative;display:inline-flex;align-items:center;gap:18px;
+  background:var(--ink);color:var(--paper);border:0;cursor:pointer;
+  font-family:inherit;font-size:14px;letter-spacing:.14em;text-transform:uppercase;
+  padding:20px 30px;overflow:hidden;transition:color .35s;
+}
+.btn-submit span{position:relative;z-index:2;display:flex;align-items:center;gap:16px}
+.btn-submit::before{content:"";position:absolute;inset:0;background:var(--red);transform:translateX(-101%);transition:transform .45s var(--ease);z-index:1}
+.btn-submit:hover::before{transform:translateX(0)}
+.btn-submit .arw{font-size:18px;transition:transform .35s var(--ease)}
+.btn-submit:hover .arw{transform:translateX(5px)}
+.btn-submit:active{transform:translateY(1px)}
+.btn-submit:disabled{opacity:.55;cursor:wait}
+.actions .hint{font-size:11px;color:var(--ink-38);letter-spacing:.06em;line-height:1.6}
+
+/* side note column */
+.side{position:sticky;top:28px;align-self:start;display:flex;flex-direction:column;gap:28px}
+.side-card{border:1px solid var(--ink);padding:22px}
+.side-card .cap{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60);margin-bottom:14px}
+.side-card .big{font-size:64px;line-height:.9;letter-spacing:-.05em;font-weight:700;font-variant-numeric:tabular-nums}
+.side-card .big small{font-size:13px;letter-spacing:.1em;font-weight:500;color:var(--ink-60);margin-left:6px}
+.side-card .sub{font-size:12px;color:var(--ink-60);margin-top:10px;line-height:1.6}
+.side-list{display:flex;flex-direction:column;gap:0}
+.side-list .row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:12px;color:var(--ink-60)}
+.side-list .row b{color:var(--ink);font-variant-numeric:tabular-nums}
+.side-red{background:var(--red);color:#fff;border-color:var(--red)}
+.side-red .cap{color:rgba(255,255,255,.7)}
+.side-red p{font-size:13px;line-height:1.65}
+.side-red p strong{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px;opacity:.75}
+
+/* ============ RECORDS ============ */
+.records{padding-bottom:clamp(50px,6vw,90px)}
+.rec-head{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+  border-top:1px solid var(--ink);padding-top:20px;flex-wrap:wrap;
+}
+.rec-head .left{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.rec-head h2{font-size:clamp(30px,4.2vw,54px);letter-spacing:-.04em;line-height:.95;font-weight:700}
+.rec-head .count{font-size:clamp(30px,4.2vw,54px);color:var(--red);font-weight:700;font-variant-numeric:tabular-nums;line-height:.95}
+.rec-head .en{font-size:10px;letter-spacing:.2em;color:var(--ink-38);text-transform:uppercase;width:100%;margin-top:2px}
+.rec-tools{display:flex;gap:10px;flex-wrap:wrap}
+.tool{
+  background:transparent;border:1px solid var(--ink);color:var(--ink);cursor:pointer;
+  font-family:inherit;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  padding:11px 16px;transition:background .25s,color .25s,transform .25s var(--ease);
+  display:inline-flex;align-items:center;gap:9px;
+}
+.tool:hover{background:var(--ink);color:var(--paper);transform:translateY(-2px)}
+.tool.primary{background:var(--ink);color:var(--paper)}
+.tool.primary:hover{background:var(--red);border-color:var(--red)}
+.tool.ghost{color:var(--ink-60);border-color:var(--rule)}
+.tool.ghost:hover{background:transparent;color:var(--red);border-color:var(--red)}
+.tool svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
+
+.rec-bar{display:flex;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--ink);margin-top:22px;flex-wrap:wrap}
+.search{flex:1;min-width:180px;position:relative}
+.search input{
+  width:100%;background:transparent;border:0;border-bottom:1px solid var(--rule);
+  font-family:inherit;font-size:13px;padding:8px 0 8px 22px;outline:none;color:var(--ink);
+}
+.search input:focus{border-bottom-color:var(--ink)}
+.search input::placeholder{color:var(--ink-38)}
+.search svg{position:absolute;left:0;top:9px;width:13px;height:13px;stroke:var(--ink-38);fill:none;stroke-width:1.8}
+.rec-note{font-size:11px;color:var(--ink-38);letter-spacing:.05em}
+
+.table{width:100%;margin-top:0}
+.thead,.trow{display:grid;grid-template-columns:64px 1.2fr 1.4fr .9fr 1.6fr 1.2fr 44px;gap:14px;align-items:center}
+.thead{padding:12px 0;border-bottom:1px solid var(--ink);font-size:10px;letter-spacing:.16em;color:var(--ink-38);text-transform:uppercase}
+.trow{padding:15px 0;border-bottom:1px solid var(--rule);font-size:13px;animation:rowIn .45s var(--ease) both}
+.trow:hover{background:rgba(16,16,16,.035)}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.trow .no{font-variant-numeric:tabular-nums;color:var(--ink-60);font-size:12px}
+.trow .nm{font-weight:600}
+.trow .nm small{display:block;font-weight:400;color:var(--ink-38);font-size:11px;letter-spacing:.04em}
+.trow .ct{font-variant-numeric:tabular-nums;color:var(--ink-60);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow .tier{font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ink);padding:3px 7px;justify-self:start;white-space:nowrap}
+.trow .tier.vip{background:var(--red);border-color:var(--red);color:#fff}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tags i{font-style:normal;font-size:10px;color:var(--ink-60);border:1px solid var(--rule);padding:2px 6px;white-space:nowrap}
+.del{background:transparent;border:0;cursor:pointer;font-family:inherit;font-size:16px;line-height:1;color:var(--ink-38);padding:6px;justify-self:end;transition:color .2s,transform .2s}
+.del:hover{color:var(--red);transform:rotate(90deg)}
+.empty{padding:60px 0;text-align:center;border-bottom:1px solid var(--rule)}
+.empty .e1{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-38)}
+.empty .e2{font-size:clamp(22px,3vw,34px);font-weight:700;letter-spacing:-.02em;margin-top:10px}
+.empty .e3{font-size:12px;color:var(--ink-38);margin-top:8px}
+
+/* stats strip */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);margin-top:clamp(40px,5vw,64px)}
+.stat{padding:22px 20px;border-right:1px solid var(--rule)}
+.stat:last-child{border-right:0}
+.stat .k{font-size:10px;letter-spacing:.16em;color:var(--ink-60);text-transform:uppercase;margin-bottom:10px}
+.stat .v{font-size:clamp(30px,3.6vw,44px);font-weight:700;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:12px;font-weight:500;letter-spacing:.06em;color:var(--ink-60);margin-left:4px}
+
+/* footer */
+footer{border-top:1px solid var(--ink);padding:26px 0 40px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:11px;letter-spacing:.1em;color:var(--ink-60);text-transform:uppercase}
+footer .r{display:flex;gap:24px;flex-wrap:wrap}
+
+/* ============ ADMIN GATE ============ */
+.locked{display:none!important}
+.admin-link{
+  background:none;border:0;border-bottom:1px solid var(--ink);cursor:pointer;
+  font-family:inherit;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink);padding:0 0 2px;white-space:nowrap;
+  transition:color .25s,border-color .25s;
+}
+.admin-link:hover{color:var(--red);border-color:var(--red)}
+.admin-link.on{color:var(--red);border-color:var(--red)}
+.login-panel{width:min(440px,100%)}
+.login-hint{font-size:12px;color:var(--ink-60);line-height:1.65;margin-top:18px}
+.login-form{display:flex;flex-direction:column;gap:24px;margin-top:24px}
+.login-err{
+  font-size:12px;color:var(--red);letter-spacing:.03em;height:16px;opacity:0;
+  transition:opacity .25s;margin-top:-8px;
+}
+.login-err.on{opacity:1}
+
+/* ============ SUCCESS OVERLAY ============ */
+.overlay{
+  position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+  padding:24px;visibility:hidden;pointer-events:none;
+}
+.overlay::before{
+  content:"";position:absolute;inset:0;background:rgba(16,16,16,.92);
+  opacity:0;transition:opacity .4s var(--ease);
+}
+.overlay.on{visibility:visible;pointer-events:auto}
+.overlay.on::before{opacity:1}
+.panel{
+  position:relative;background:var(--paper);width:min(560px,100%);padding:clamp(28px,4vw,48px);
+  transform:translateY(30px) scale(.97);opacity:0;transition:all .55s var(--ease);
+}
+.overlay.on .panel{transform:none;opacity:1}
+.panel .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--ink);padding-bottom:16px}
+.panel .top .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60)}
+.panel .close{background:none;border:0;font-size:22px;cursor:pointer;line-height:1;color:var(--ink);padding:0 4px;transition:transform .3s}
+.panel .close:hover{transform:rotate(90deg)}
+.panel .stamp{font-size:clamp(54px,9vw,86px);font-weight:700;letter-spacing:-.05em;line-height:.9;margin:24px 0 6px;color:var(--red)}
+.panel .stamp small{display:block;font-size:11px;letter-spacing:.2em;color:var(--ink-60);margin-top:10px;font-weight:500}
+.panel .who{font-size:clamp(20px,2.4vw,26px);font-weight:600;letter-spacing:-.01em;margin-top:18px}
+.panel .detail{font-size:12px;color:var(--ink-60);margin-top:8px;line-height:1.7}
+.panel .bar2{height:1px;background:var(--rule);margin:22px 0}
+.panel .panel-actions{display:flex;gap:10px;flex-wrap:wrap}
+.panel .panel-actions .tool{flex:1;justify-content:center}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:100;
+  background:var(--ink);color:var(--paper);font-size:12px;letter-spacing:.08em;
+  padding:13px 22px;opacity:0;pointer-events:none;transition:all .35s var(--ease);
+  max-width:calc(100vw - 40px);text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:var(--red)}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1080px){
+  .form-sec{grid-template-columns:1fr}
+  .side{position:static;flex-direction:row;flex-wrap:wrap}
+  .side-card{flex:1 1 240px}
+  .side-red{flex-basis:100%}
+  .thead,.trow{grid-template-columns:56px 1fr 1.3fr .8fr 44px}
+  .thead .th-tags,.trow .tags,.thead .th-time,.trow .time{display:none}
+}
+@media (max-width:760px){
+  :root{--pad:20px}
+  .topbar .meta{gap:14px;font-size:10px}
+  .topbar .meta .y{display:none}
+  .topbar #clock{display:none}
+  h1{font-size:clamp(44px,13vw,80px)}
+  .hero-bottom{grid-template-columns:1fr 1fr}
+  .hero-bottom .item:last-child{grid-column:1/-1;text-align:left}
+  .fields{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat{border-bottom:1px solid var(--rule)}
+  .stat:nth-child(2){border-right:0}
+  .thead,.trow{grid-template-columns:44px 1fr 34px;gap:8px}
+  .thead .th-tier,.trow .tier,.thead .th-contact,.trow .contact{display:none}
+  .rec-head h2{font-size:30px}
+  .rec-tools{width:100%}
+  .tool{flex:1;justify-content:center}
+  .panel .panel-actions .tool{flex:1 1 100%}
+  footer{flex-direction:column;gap:10px}
+}
+@media (max-width:560px){
+  .kicker .bar{display:none}
+  .kicker .tag{flex:1;min-width:0;text-align:right;white-space:normal}
+  .hero-bottom{grid-template-columns:1fr}
+  .side{flex-direction:column}
+  .side-card{flex:1 1 auto}
+  .rec-head h2,.rec-head .count{font-size:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg" id="gridBg" aria-hidden="true"></div>
+<div class="progress-rail" aria-hidden="true"><i id="progressBar"></i></div>
+
+<div class="wrap">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand"><span class="mark"></span>MEMBER REGISTRY / 会员档案</div>
+    <div class="meta">
+      <span class="y">EST. 2026</span>
+      <span class="y"><span class="dot"></span>LOCAL / 本地存储</span>
+      <span id="clock">--:--</span>
+      <button class="admin-link" id="adminBtn" type="button">管理员登录 ↗</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="kicker">
+      <span class="no">FORM · 001</span>
+      <span class="bar"></span>
+      <span class="tag">SWISS INTERNATIONAL STYLE</span>
+    </div>
+    <h1>
+      会员信息<br>收集
+      <span class="en">MEMBER <span>INFORMATION</span> COLLECTION — 一份表格，建立长期关系。</span>
+    </h1>
+    <div class="hero-bottom">
+      <div class="item"><b>Purpose</b>建立会员档案，沉淀可运营的用户资产</div>
+      <div class="item"><b>Principle</b>少即是多，只采集必要的信息</div>
+      <div class="item">DATA EXPORT READY ↓ CSV / JSON</div>
+    </div>
+    <div class="scroll-cue"><i></i>向下填写 · SCROLL TO FILL</div>
+  </section>
+
+  <!-- FORM + SIDE -->
+  <section class="form-sec">
+    <div class="form-main">
+
+      <div class="section-head">
+        <span class="t">Registration Form / 登记表</span>
+        <span class="n" id="fillRate">0% COMPLETED</span>
+      </div>
+
+      <form id="memberForm" novalidate>
+
+        <!-- 01 -->
+        <div class="field-group reveal">
+          <div class="group-title">
+            <span class="idx">01</span>
+            <h2>基础信息</h2>
+            <span class="en">Identity</span>
+          </div>
+          <div class="fields">
+            <div class="field">
+              <label class="label" for="name"><span class="cn">姓名</span><span class="req">*</span></label>
+              <input class="control" id="name" name="name" type="text" placeholder="请输入真实姓名" autocomplete="name" maxlength="30">
+              <div class="err-msg">请填写姓名（至少 2 个字）</div>
+            </div>
+            <div class="field">
+              <label class="label" for="phone"><span class="cn">手机号</span><span class="req">*</span></label>
+              <input class="control" id="phone" name="phone" type="tel" placeholder="11 位手机号码" inputmode="numeric" autocomplete="tel" maxlength="11">
+              <div class="err-msg">请输入有效的 11 位手机号</div>
+            </div>
+            <div class="field">
+              <label class="label" for="email"><span class="cn">电子邮箱</span></label>
+              <input class="control" id="email" name="email" type="email" placeholder="name@example.com" autocomplete="email">
+              <div class="err-msg">邮箱格式不正确</div>
+            </div>
+            <div class="field">
+              <label class="label" for="city"><span class="cn">所在城市</span></label>
+              <input class="control" id="city" name="city" type="text" placeholder="如：郑州" autocomplete="address-level2" maxlength="20">
+              <div class="err-msg"></div>
+            </div>
+            <div class="field">
+              <label class="label" for="age"><span class="cn">年龄</span></label>
+              <input class="control" id="age" name="age" type="number" placeholder="18 – 80" min="14" max="100" inputmode="numeric">
+              <div class="err-msg">请输入 14 – 100 之间的年龄</div>
+            </div>
+            <div class="field">
+              <label class="label" for="gender"><span class="cn">性别</span></label>
+              <select class="control" id="gender" name="gender">
+                <option value="">请选择</option>
+                <option value="女">女 / Female</option>
+                <option value="男">男 / Male</option>
+                <option value="其他">其他 / Other</option>
+              </select>
+              <div class="err-msg"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 -->
+        <div class="field-group reveal">
+          <div class="group-title">
+            <span class="idx">02</span>
+            <h2>会员属性</h2>
+            <span class="en">Status & Preference</span>
+          </div>
+          <div class="fields">
+            <div class="field">
+              <label class="label" for="tier"><span class="cn">会员等级</span><span class="req">*</span></label>
+              <select class="control" id="tier" name="tier">
+                <option value="">请选择会员等级</option>
+                <option value="普通会员">普通会员 / Standard</option>
+                <option value="银卡会员">银卡会员 / Silver</option>
+                <option value="金卡会员">金卡会员 / Gold</option>
+                <option value="黑卡会员">黑卡会员 / Black</option>
+              </select>
+              <div class="err-msg">请选择会员等级</div>
+            </div>
+            <div class="field">
+              <label class="label" for="source"><span class="cn">了解渠道</span></label>
+              <select class="control" id="source" name="source">
+                <option value="">请选择</option>
+                <option value="门店到访">门店到访</option>
+                <option value="朋友推荐">朋友推荐</option>
+                <option value="社交媒体">社交媒体</option>
+                <option value="线下活动">线下活动</option>
+                <option value="线上广告">线上广告</option>
+                <option value="其他">其他</option>
+              </select>
+              <div class="err-msg"></div>
+            </div>
+            <div class="field full">
+              <label class="label"><span class="cn">兴趣标签</span><span style="color:var(--ink-38);letter-spacing:.04em">可多选</span></label>
+              <div class="chips" id="tagChips">
+                <label class="chip"><input type="checkbox" name="tags" value="咖啡"><span>咖啡</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="阅读"><span>阅读</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="展览"><span>展览</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="手作"><span>手作</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="音乐"><span>音乐</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="运动"><span>运动</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="亲子"><span>亲子</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="宠物"><span>宠物</span></label>
+                <label class="chip"><input type="checkbox" name="tags" value="社群"><span>社群</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 -->
+        <div class="field-group reveal">
+          <div class="group-title">
+            <span class="idx">03</span>
+            <h2>补充与授权</h2>
+            <span class="en">Notes & Consent</span>
+          </div>
+          <div class="fields">
+            <div class="field full">
+              <label class="label" for="note"><span class="cn">备注</span><span style="color:var(--ink-38);letter-spacing:.04em">选填</span></label>
+              <textarea class="control" id="note" name="note" placeholder="希望我们了解的其他信息，例如到店偏好、联系时间等" maxlength="200"></textarea>
+              <div class="err-msg"></div>
+            </div>
+            <div class="field full consent-field">
+              <label class="consent">
+                <input type="checkbox" id="consent" name="consent">
+                <span class="box"></span>
+                <p><strong>我已阅读并同意《会员信息使用说明》。</strong>所填信息仅用于会员服务与活动通知，数据保存在本机浏览器中，可随时导出或删除。</p>
+              </label>
+              <div class="err-msg" style="margin-left:34px">请勾选同意后才能提交</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-submit" type="submit" id="submitBtn">
+            <span>提交登记 <span class="arw">→</span></span>
+          </button>
+          <p class="hint">SUBMIT &nbsp;·&nbsp; 提交后记录自动写入本地档案库<br>并计入下方数据统计</p>
+        </div>
+      </form>
+    </div>
+
+    <!-- SIDE -->
+    <aside class="side">
+      <div class="side-card reveal admin-only locked">
+        <div class="cap">Records / 已登记</div>
+        <div class="big" id="sideCount">0<small>MEMBERS</small></div>
+        <div class="sub">数据实时写入浏览器 localStorage，关掉页面也不会丢失。</div>
+      </div>
+      <div class="side-card reveal admin-only locked">
+        <div class="cap">By Tier / 等级分布</div>
+        <div class="side-list" id="tierDist"></div>
+      </div>
+      <div class="side-card reveal" id="lockedCard">
+        <div class="cap">Restricted / 受限访问</div>
+        <p style="font-size:13px;line-height:1.65;color:var(--ink-60)">登记档案、数据统计与导出仅对管理员开放。</p>
+        <button class="tool" id="sideLoginBtn" type="button" style="margin-top:16px;width:100%;justify-content:center">管理员登录</button>
+      </div>
+      <div class="side-card side-red reveal">
+        <div class="cap">Notice / 说明</div>
+        <p><strong>关于隐私</strong>本页面为纯前端实现，不向任何服务器发送数据。导出文件仅在你的设备上生成。</p>
+      </div>
+    </aside>
+  </section>
+
+  <!-- RECORDS -->
+  <section class="records locked" id="records">
+    <div class="rec-head reveal">
+      <div class="left">
+        <h2>数据档案</h2>
+        <span class="count" id="recCount">0</span>
+        <span class="en">Collected Records · Exportable</span>
+      </div>
+      <div class="rec-tools">
+        <button class="tool primary" id="exportCsv">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>导出 CSV
+        </button>
+        <button class="tool" id="exportJson">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>导出 JSON
+        </button>
+        <button class="tool ghost" id="clearAll">清空全部</button>
+      </div>
+    </div>
+
+    <div class="rec-bar">
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+        <input type="search" id="searchInput" placeholder="搜索姓名 / 手机号 / 城市 / 标签">
+      </div>
+      <div class="rec-note" id="recNote">共 0 条记录</div>
+    </div>
+
+    <div class="table">
+      <div class="thead">
+        <div class="th-no">No.</div>
+        <div>姓名 / Name</div>
+        <div class="th-contact">联系方式 / Contact</div>
+        <div class="th-tier">等级 / Tier</div>
+        <div class="th-tags">标签 / Tags</div>
+        <div class="th-time">登记时间 / Time</div>
+        <div></div>
+      </div>
+      <div id="tableBody"></div>
+      <div class="empty" id="emptyState">
+        <div class="e1">No Records Yet</div>
+        <div class="e2">还没有会员记录</div>
+        <div class="e3">填写上方表单，第一条档案将在这里出现。</div>
+      </div>
+    </div>
+
+    <div class="stats reveal">
+      <div class="stat"><div class="k">Total Members</div><div class="v" id="stTotal">0<small>人</small></div></div>
+      <div class="stat"><div class="k">This Month</div><div class="v" id="stMonth">0<small>人</small></div></div>
+      <div class="stat"><div class="k">Gold & Above</div><div class="v" id="stVip">0<small>%</small></div></div>
+      <div class="stat"><div class="k">Top Interest</div><div class="v" id="stTag" style="font-size:clamp(24px,2.6vw,34px)">—</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div>© 2026 MEMBER REGISTRY — SWISS STYLE FORM SYSTEM</div>
+    <div class="r"><span>HELVETICA / GRID / RED</span><span>LOCAL ONLY · NO SERVER</span><span>V1.0</span></div>
+  </footer>
+</div>
+
+<!-- SUCCESS -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="ovTitle">
+  <div class="panel">
+    <div class="top">
+      <span class="lbl" id="ovTitle">Registration Complete / 登记成功</span>
+      <button class="close" id="closeOverlay" aria-label="关闭">×</button>
+    </div>
+    <div class="stamp" id="ovNo">M-0001<small>MEMBER NO. / 会员编号</small></div>
+    <div class="who" id="ovName">—</div>
+    <div class="detail" id="ovDetail">—</div>
+    <div class="bar2"></div>
+    <div class="panel-actions">
+      <button class="tool primary" id="ovNext">继续登记</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div class="overlay" id="loginOverlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="panel login-panel">
+    <div class="top">
+      <span class="lbl" id="loginTitle">Admin Access / 管理员登录</span>
+      <button class="close" id="closeLogin" aria-label="关闭">×</button>
+    </div>
+    <div class="login-hint">登记档案、数据统计与导出仅对管理员开放。<br>请输入管理员姓名与访问密码。</div>
+    <form class="login-form" id="loginForm" novalidate>
+      <div class="field">
+        <label class="label" for="adminName"><span class="cn">姓名</span></label>
+        <input class="control" id="adminName" type="text" placeholder="管理员姓名" autocomplete="username">
+      </div>
+      <div class="field">
+        <label class="label" for="adminPass"><span class="cn">密码</span></label>
+        <input class="control" id="adminPass" type="password" placeholder="访问密码" autocomplete="current-password">
+      </div>
+      <div class="login-err" id="loginErr">姓名或密码不正确，请重试。</div>
+      <div class="panel-actions">
+        <button class="tool primary" type="submit" style="flex:1;justify-content:center">进入档案库</button>
+        <button class="tool" type="button" id="loginCancel" style="justify-content:center">取消</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var KEY = 'swiss_member_records_v1';
+  var TIERS = ['普通会员','银卡会员','金卡会员','黑卡会员'];
+  // 管理员账号（纯前端演示用，可在源码中修改）
+  var ADMIN = { name: '管理员', pass: 'admin2026' };
+  var ADMIN_KEY = 'swiss_admin_session';
+  var isAdmin = false;
+
+  /* ---------- elements ---------- */
+  var $ = function(id){ return document.getElementById(id); };
+  var form = $('memberForm');
+  var tableBody = $('tableBody');
+  var emptyState = $('emptyState');
+  var overlay = $('overlay');
+  var toastEl = $('toast');
+
+  var records = load();
+
+  /* ---------- storage ---------- */
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(records)); }
+    catch(e){ toast('本地存储空间不足，数据未保存', true); }
+  }
+
+  /* ---------- helpers ---------- */
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function pad(n){ return n < 10 ? '0' + n : String(n); }
+  function fmtTime(iso){
+    var d = new Date(iso);
+    return d.getFullYear() + '.' + pad(d.getMonth()+1) + '.' + pad(d.getDate()) +
+           ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function todayKey(){
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth()+1);
+  }
+  var toastTimer;
+  function toast(msg, bad){
+    toastEl.textContent = msg;
+    toastEl.classList.toggle('bad', !!bad);
+    toastEl.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 2400);
+  }
+  function nextNo(){
+    var max = 0;
+    records.forEach(function(r){
+      var m = /M-(\d+)/.exec(r.no || '');
+      if(m) max = Math.max(max, parseInt(m[1], 10));
+    });
+    return 'M-' + String(max + 1).padStart(4, '0');
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    renderTable();
+    renderStats();
+    renderSide();
+    renderProgress();
+  }
+
+  function renderTable(){
+    var q = ($('searchInput').value || '').trim().toLowerCase();
+    var list = records.slice().sort(function(a,b){ return b.ts - a.ts; });
+    if(q){
+      list = list.filter(function(r){
+        var hay = [r.name, r.phone, r.email, r.city, r.tier, r.source, (r.tags||[]).join(' ')].join(' ').toLowerCase();
+        return hay.indexOf(q) > -1;
+      });
+    }
+    $('recCount').textContent = list.length;
+    $('recNote').textContent = q ? '匹配 ' + list.length + ' 条记录' : '共 ' + list.length + ' 条记录';
+    emptyState.style.display = list.length ? 'none' : 'block';
+    emptyState.querySelector('.e2').textContent = q ? '没有匹配的记录' : '还没有会员记录';
+    emptyState.querySelector('.e3').textContent = q ? '试试其他关键词，或清空搜索框。' : '填写上方表单，第一条档案将在这里出现。';
+
+    var html = '';
+    list.forEach(function(r, i){
+      var tags = (r.tags && r.tags.length) ? r.tags.map(function(t){ return '<i>' + esc(t) + '</i>'; }).join('') : '<i>无</i>';
+      var isVip = r.tier === '金卡会员' || r.tier === '黑卡会员';
+      html += '<div class="trow" style="animation-delay:' + Math.min(i*0.03, .3) + 's" data-id="' + r.id + '">' +
+        '<div class="no">' + esc(r.no) + '</div>' +
+        '<div class="nm">' + esc(r.name) + '<small>' + esc(r.city || '未填写城市') + ' · ' + esc(r.age ? r.age + '岁' : '年龄未知') + '</small></div>' +
+        '<div class="ct contact">' + esc(r.phone) + (r.email ? '<br>' + esc(r.email) : '') + '</div>' +
+        '<div class="tier' + (isVip ? ' vip' : '') + '">' + esc(r.tier.replace('会员','')) + '</div>' +
+        '<div class="tags">' + tags + '</div>' +
+        '<div class="ct time">' + fmtTime(r.ts) + '</div>' +
+        '<button class="del" data-del="' + r.id + '" aria-label="删除 ' + esc(r.name) + '">×</button>' +
+      '</div>';
+    });
+    tableBody.innerHTML = html;
+  }
+
+  function renderStats(){
+    var total = records.length;
+    $('stTotal').innerHTML = total + '<small>人</small>';
+    $('stMonth').innerHTML = records.filter(function(r){
+      return new Date(r.ts).getFullYear() + '-' + pad(new Date(r.ts).getMonth()+1) === todayKey();
+    }).length + '<small>人</small>';
+    var vip = records.filter(function(r){ return r.tier === '金卡会员' || r.tier === '黑卡会员'; }).length;
+    $('stVip').innerHTML = (total ? Math.round(vip / total * 100) : 0) + '<small>%</small>';
+
+    var counts = {};
+    records.forEach(function(r){ (r.tags||[]).forEach(function(t){ counts[t] = (counts[t]||0) + 1; }); });
+    var top = Object.keys(counts).sort(function(a,b){ return counts[b] - counts[a]; })[0];
+    $('stTag').textContent = top || '—';
+  }
+
+  function renderSide(){
+    $('sideCount').innerHTML = records.length + '<small>MEMBERS</small>';
+    var counts = {};
+    records.forEach(function(r){ counts[r.tier] = (counts[r.tier]||0) + 1; });
+    var html = '';
+    TIERS.forEach(function(t){
+      html += '<div class="row"><span>' + t.replace('会员','') + '</span><b>' + (counts[t]||0) + '</b></div>';
+    });
+    $('tierDist').innerHTML = html;
+  }
+
+  function renderProgress(){
+    var checks = [
+      val('name').length >= 2,
+      /^1[3-9]\d{9}$/.test(val('phone')),
+      val('tier') !== '',
+      $('consent').checked
+    ];
+    var pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
+    $('fillRate').textContent = pct + '% COMPLETED';
+    $('progressBar').style.width = pct + '%';
+  }
+  function val(id){ return $(id).value.trim(); }
+
+  /* ---------- validation ---------- */
+  function fieldOf(el){ return el.closest('.field'); }
+  function setErr(el, bad, msg){
+    var f = fieldOf(el);
+    if(!f) return;
+    if(bad && msg) f.querySelector('.err-msg').textContent = msg;
+    f.classList.toggle('err', bad);
+  }
+  function validate(){
+    var ok = true;
+    var name = val('name');
+    if(name.length < 2){ setErr($('name'), true, '请填写姓名（至少 2 个字）'); ok = false; } else setErr($('name'), false);
+
+    var phone = val('phone');
+    if(!/^1[3-9]\d{9}$/.test(phone)){ setErr($('phone'), true, '请输入有效的 11 位手机号'); ok = false; }
+    else if(records.some(function(r){ return r.phone === phone; })){
+      setErr($('phone'), true, '该手机号已登记，请勿重复提交'); ok = false;
+    } else setErr($('phone'), false);
+
+    var email = val('email');
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setErr($('email'), true, '邮箱格式不正确'); ok = false; }
+    else setErr($('email'), false);
+
+    var age = val('age');
+    if(age && (Number(age) < 14 || Number(age) > 100)){ setErr($('age'), true, '请输入 14 – 100 之间的年龄'); ok = false; }
+    else setErr($('age'), false);
+
+    if(!val('tier')){ setErr($('tier'), true, '请选择会员等级'); ok = false; } else setErr($('tier'), false);
+
+    var consentField = $('consent').closest('.field');
+    if(!$('consent').checked){ consentField.classList.add('err'); ok = false; }
+    else consentField.classList.remove('err');
+
+    return ok;
+  }
+
+  /* ---------- submit ---------- */
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(!validate()){
+      var firstErr = form.querySelector('.field.err');
+      if(firstErr){
+        firstErr.querySelector('.control, input').focus({ preventScroll: true });
+        firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast('请检查标红的信息', true);
+      } else {
+        toast('请勾选并同意信息使用说明', true);
+      }
+      return;
+    }
+
+    var btn = $('submitBtn');
+    btn.disabled = true;
+    var tags = Array.prototype.slice.call(form.querySelectorAll('input[name="tags"]:checked')).map(function(i){ return i.value; });
+
+    var rec = {
+      id: 'r' + Date.now() + Math.random().toString(36).slice(2, 6),
+      no: nextNo(),
+      name: val('name'),
+      phone: val('phone'),
+      email: val('email'),
+      city: val('city'),
+      age: val('age') ? Number(val('age')) : '',
+      gender: val('gender'),
+      tier: val('tier'),
+      source: val('source'),
+      tags: tags,
+      note: val('note'),
+      ts: Date.now()
+    };
+
+    records.push(rec);
+    save();
+    render();
+
+    setTimeout(function(){
+      btn.disabled = false;
+      showSuccess(rec);
+      form.reset();
+      form.querySelectorAll('.field.err').forEach(function(f){ f.classList.remove('err'); });
+      document.querySelectorAll('.chip input').forEach(function(i){ i.checked = false; });
+      renderProgress();
+    }, 420);
+  });
+
+  function showSuccess(rec){
+    $('ovNo').innerHTML = esc(rec.no) + '<small>MEMBER NO. / 会员编号</small>';
+    $('ovName').textContent = rec.name + ' · ' + rec.tier;
+    $('ovDetail').innerHTML = '手机号 ' + esc(rec.phone) +
+      (rec.city ? ' · 所在地 ' + esc(rec.city) : '') +
+      '<br>登记时间 ' + fmtTime(rec.ts) +
+      (rec.tags.length ? '<br>兴趣标签：' + rec.tags.map(esc).join(' / ') : '');
+    overlay.classList.add('on');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ $('closeOverlay').focus(); }, 500);
+  }
+  function closeOverlay(){
+    overlay.classList.remove('on');
+    document.body.style.overflow = '';
+  }
+  $('closeOverlay').addEventListener('click', closeOverlay);
+  $('ovNext').addEventListener('click', function(){ closeOverlay(); $('name').focus(); });
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeOverlay(); });
+
+  /* ---------- admin gate ---------- */
+  function readSession(){
+    try{ return sessionStorage.getItem(ADMIN_KEY) === '1'; }catch(e){ return false; }
+  }
+  function writeSession(on){
+    try{
+      if(on) sessionStorage.setItem(ADMIN_KEY, '1');
+      else sessionStorage.removeItem(ADMIN_KEY);
+    }catch(e){}
+  }
+  function applyAdmin(on){
+    isAdmin = on;
+    document.querySelectorAll('.admin-only').forEach(function(el){ el.classList.toggle('locked', !on); });
+    $('records').classList.toggle('locked', !on);
+    $('lockedCard').classList.toggle('locked', on);
+    $('adminBtn').textContent = on ? '退出管理员 ↙' : '管理员登录 ↗';
+    $('adminBtn').classList.toggle('on', on);
+  }
+  function openLogin(){
+    if(isAdmin) return;
+    $('loginErr').classList.remove('on');
+    $('adminName').value = '';
+    $('adminPass').value = '';
+    $('loginOverlay').classList.add('on');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ $('adminName').focus(); }, 450);
+  }
+  function closeLogin(){
+    $('loginOverlay').classList.remove('on');
+    document.body.style.overflow = '';
+  }
+  $('adminBtn').addEventListener('click', function(){
+    if(isAdmin){
+      applyAdmin(false);
+      writeSession(false);
+      toast('已退出管理员模式，档案库已上锁');
+    } else {
+      openLogin();
+    }
+  });
+  $('sideLoginBtn').addEventListener('click', openLogin);
+  $('closeLogin').addEventListener('click', closeLogin);
+  $('loginCancel').addEventListener('click', closeLogin);
+  $('loginOverlay').addEventListener('click', function(e){
+    if(e.target === $('loginOverlay')) closeLogin();
+  });
+  $('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var nm = $('adminName').value.trim();
+    var pw = $('adminPass').value;
+    if(nm === ADMIN.name && pw === ADMIN.pass){
+      $('loginErr').classList.remove('on');
+      closeLogin();
+      applyAdmin(true);
+      writeSession(true);
+      render();
+      toast('管理员已验证 · 档案库已解锁');
+      setTimeout(function(){
+        $('records').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 250);
+    } else {
+      $('loginErr').classList.add('on');
+      $('adminPass').value = '';
+      $('adminPass').focus();
+    }
+  });
+  $('adminName').addEventListener('input', function(){ $('loginErr').classList.remove('on'); });
+  $('adminPass').addEventListener('input', function(){ $('loginErr').classList.remove('on'); });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if($('loginOverlay').classList.contains('on')) closeLogin();
+    else if(overlay.classList.contains('on')) closeOverlay();
+  });
+
+  /* ---------- delete / clear ---------- */
+  tableBody.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-del]');
+    if(!btn) return;
+    var id = btn.getAttribute('data-del');
+    var rec = records.filter(function(r){ return r.id === id; })[0];
+    if(!rec) return;
+    records = records.filter(function(r){ return r.id !== id; });
+    save(); render();
+    toast('已删除 ' + rec.name + ' 的档案');
+  });
+
+  var clearArmed = false, clearTimer;
+  $('clearAll').addEventListener('click', function(){
+    if(!records.length){ toast('当前没有可清空的记录', true); return; }
+    if(!clearArmed){
+      clearArmed = true;
+      this.textContent = '再次点击确认清空';
+      clearTimeout(clearTimer);
+      clearTimer = setTimeout(function(){
+        clearArmed = false;
+        $('clearAll').textContent = '清空全部';
+      }, 3000);
+      return;
+    }
+    records = [];
+    save(); render();
+    clearArmed = false;
+    this.textContent = '清空全部';
+    toast('全部记录已清空');
+  });
+
+  /* ---------- export ---------- */
+  var CSV_HEAD = ['会员编号','姓名','手机号','电子邮箱','所在城市','年龄','性别','会员等级','了解渠道','兴趣标签','备注','登记时间'];
+
+  function csvCell(v){
+    var s = String(v == null ? '' : v);
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  function download(filename, text, mime){
+    var blob = new Blob([text], { type: mime + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 400);
+  }
+  function stampFile(){
+    var d = new Date();
+    return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes());
+  }
+  function exportCsv(){
+    if(!records.length){ toast('暂无数据可导出', true); return; }
+    var lines = ['\uFEFF' + CSV_HEAD.map(csvCell).join(',')];
+    records.slice().sort(function(a,b){ return a.ts - b.ts; }).forEach(function(r){
+      lines.push([r.no, r.name, r.phone, r.email, r.city, r.age, r.gender, r.tier, r.source, (r.tags||[]).join(' / '), r.note, fmtTime(r.ts)].map(csvCell).join(','));
+    });
+    download('会员信息_' + stampFile() + '.csv', lines.join('\r\n'), 'text/csv');
+    toast('CSV 已导出 · ' + records.length + ' 条记录');
+  }
+  function exportJson(){
+    if(!records.length){ toast('暂无数据可导出', true); return; }
+    var payload = {
+      exportedAt: new Date().toISOString(),
+      total: records.length,
+      records: records.slice().sort(function(a,b){ return a.ts - b.ts; })
+    };
+    download('会员信息_' + stampFile() + '.json', JSON.stringify(payload, null, 2), 'application/json');
+    toast('JSON 已导出 · ' + records.length + ' 条记录');
+  }
+  var exportCsvFn = exportCsv;
+  $('exportCsv').addEventListener('click', exportCsvFn);
+  $('exportJson').addEventListener('click', exportJson);
+
+  /* ---------- live inputs ---------- */
+  form.addEventListener('input', function(e){
+    var el = e.target;
+    if(el.classList.contains('control')){ setErr(el, false); }
+    renderProgress();
+  });
+  form.addEventListener('change', function(e){
+    var el = e.target;
+    if(el.id === 'consent' || el.tagName === 'SELECT'){
+      var f = el.closest('.field');
+      if(f) f.classList.remove('err');
+    }
+    renderProgress();
+  });
+  form.addEventListener('blur', function(e){
+    if(e.target.classList && e.target.classList.contains('control') && e.target.value.trim()){
+      // soft validate individual fields on blur
+      if(e.target.id === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value.trim())){
+        setErr(e.target, true, '邮箱格式不正确');
+      }
+      if(e.target.id === 'age'){
+        var v = Number(e.target.value);
+        if(v < 14 || v > 100) setErr(e.target, true, '请输入 14 – 100 之间的年龄');
+      }
+    }
+  }, true);
+
+  $('searchInput').addEventListener('input', renderTable);
+
+  /* ---------- clock ---------- */
+  function tick(){
+    var d = new Date();
+    $('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  tick(); setInterval(tick, 1000);
+
+  /* ---------- background grid ---------- */
+  (function buildGrid(){
+    var bg = $('gridBg');
+    var frag = document.createDocumentFragment();
+    for(var i = 1; i < 12; i++){
+      var s = document.createElement('span');
+      s.style.left = (i * 100 / 12) + '%';
+      frag.appendChild(s);
+    }
+    bg.appendChild(frag);
+  })();
+
+  /* ---------- scroll reveal ---------- */
+  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }) : null;
+
+  document.querySelectorAll('.reveal').forEach(function(el){
+    if(io) io.observe(el); else el.classList.add('in');
+  });
+  // 首屏立即显示
+  requestAnimationFrame(function(){
+    document.querySelectorAll('.reveal').forEach(function(el){
+      var top = el.getBoundingClientRect().top;
+      if(top < window.innerHeight) el.classList.add('in');
+    });
+  });
+
+  /* ---------- init ---------- */
+  applyAdmin(readSession());
+  render();
+})();
+</script>
+</body>
+</html>
